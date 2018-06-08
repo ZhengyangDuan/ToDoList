@@ -31,6 +31,19 @@ class ToDoViewController: UITableViewController {
         return cell
         
     }
+    
+    //MARK: -declare tableview delegate
+    //when cell been clicked
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+       // print(item[indexPath.row])
+        if tableView.cellForRow(at: indexPath)?.accessoryType != .checkmark{
+            tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark
+        }else {
+            tableView.cellForRow(at: indexPath)?.accessoryType = .none
+        }
+        
+        tableView.deselectRow(at: indexPath, animated: true)
+    }
 
 }
 
