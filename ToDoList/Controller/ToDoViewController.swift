@@ -7,14 +7,20 @@
 //
 
 import UIKit
+import Foundation
 
 class ToDoViewController: UITableViewController {
     
-    var  item = ["go to supermarket", "go to school", "go to bank"]
+    var  item = [Item]()
+    let defaults = UserDefaults.standard
+    
 
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
+        let newItem = Item()
+        newItem.title = "LALALA"
+        item.append(newItem)
     }
 
     //MARK: -declare table rows and data source
@@ -27,7 +33,10 @@ class ToDoViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
   
         let cell = UITableViewCell(style: .default, reuseIdentifier: "Todo")
-        cell.textLabel?.text = item[indexPath.row]
+        cell.textLabel?.text = item[indexPath.row].title
+        
+        cell.accessoryType = item[indexPath.row].done ? .checkmark : .none
+        
         return cell
         
     }
@@ -35,13 +44,8 @@ class ToDoViewController: UITableViewController {
     //MARK: -declare tableview delegate
     //when cell been clicked
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-       // print(item[indexPath.row])
-        if tableView.cellForRow(at: indexPath)?.accessoryType != .checkmark{
-            tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark
-        }else {
-            tableView.cellForRow(at: indexPath)?.accessoryType = .none
-        }
-        
+        item[indexPath.row].done = !item[indexPath.row].done
+        self.tableView.reloadData()
         tableView.deselectRow(at: indexPath, animated: true)
     }
     
@@ -51,7 +55,10 @@ class ToDoViewController: UITableViewController {
         let alert = UIAlertController(title: "Add New Item", message: "", preferredStyle: .alert)
         let action = UIAlertAction(title: "Add Item", style: .default) { (action) in
             if textField.text != ""{
-                self.item.append(textField.text!)
+                let newItem = Item()
+                newItem.title = textField.text!
+                self.item.append(newItem)
+                self.defaults.set(self.item, forKey: "ToDoItemList")
                 self.tableView.reloadData()
             }else{
                 print("error!")
