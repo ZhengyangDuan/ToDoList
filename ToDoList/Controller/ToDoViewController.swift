@@ -11,16 +11,14 @@ import Foundation
 
 class ToDoViewController: UITableViewController {
     
-    var  item = [Item]()
-    let defaults = UserDefaults.standard
+    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
     
-
+    var  item = [Item]()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
-        let newItem = Item()
-        newItem.title = "LALALA"
-        item.append(newItem)
+        loadDataItem()
     }
 
     //MARK: -declare table rows and data source
@@ -34,9 +32,8 @@ class ToDoViewController: UITableViewController {
   
         let cell = UITableViewCell(style: .default, reuseIdentifier: "Todo")
         cell.textLabel?.text = item[indexPath.row].title
-        
+        //change the done value
         cell.accessoryType = item[indexPath.row].done ? .checkmark : .none
-        
         return cell
         
     }
@@ -45,7 +42,7 @@ class ToDoViewController: UITableViewController {
     //when cell been clicked
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         item[indexPath.row].done = !item[indexPath.row].done
-        self.tableView.reloadData()
+        saveDataItem()
         tableView.deselectRow(at: indexPath, animated: true)
     }
     
@@ -58,8 +55,8 @@ class ToDoViewController: UITableViewController {
                 let newItem = Item()
                 newItem.title = textField.text!
                 self.item.append(newItem)
-                self.defaults.set(self.item, forKey: "ToDoItemList")
-                self.tableView.reloadData()
+                self.saveDataItem()
+                
             }else{
                 print("error!")
             }
@@ -71,5 +68,29 @@ class ToDoViewController: UITableViewController {
         alert.addAction(action)
         present(alert, animated: true, completion: nil)
     }
+    
+    func saveDataItem(){
+        //declare encorder
+        let encoder = PropertyListEncoder()
+        do{
+            let data = try encoder.encode(item)
+            try data.write(to: dataFilePath!)
+        }catch{
+            print("error" + "\(error)")
+        }
+        self.tableView.reloadData()
+    }
+    func loadDataItem(){
+        if let data = try? Data(contentsOf: dataFilePath!){
+            let decoder = PropertyListDecoder()
+            do {item = try decoder.decode([Item].self, from: data)
+            }catch{
+                print("error occured \(error)")
+            }
+        }
+       
+    }
+    
+    
 }
 
