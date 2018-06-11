@@ -7,18 +7,20 @@
 //
 
 import UIKit
-import Foundation
+import CoreData
 
 class ToDoViewController: UITableViewController {
-    
-    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
-    
+
+    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     var  item = [Item]()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
+        print(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask))
         loadDataItem()
+        
+        
     }
 
     //MARK: -declare table rows and data source
@@ -41,6 +43,7 @@ class ToDoViewController: UITableViewController {
     //MARK: -declare tableview delegate
     //when cell been clicked
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        
         item[indexPath.row].done = !item[indexPath.row].done
         saveDataItem()
         tableView.deselectRow(at: indexPath, animated: true)
@@ -52,8 +55,9 @@ class ToDoViewController: UITableViewController {
         let alert = UIAlertController(title: "Add New Item", message: "", preferredStyle: .alert)
         let action = UIAlertAction(title: "Add Item", style: .default) { (action) in
             if textField.text != ""{
-                let newItem = Item()
+                let newItem = Item(context: self.context)
                 newItem.title = textField.text!
+                newItem.done = false
                 self.item.append(newItem)
                 self.saveDataItem()
                 
@@ -71,26 +75,47 @@ class ToDoViewController: UITableViewController {
     
     func saveDataItem(){
         //declare encorder
-        let encoder = PropertyListEncoder()
+        
         do{
-            let data = try encoder.encode(item)
-            try data.write(to: dataFilePath!)
+           try self.context.save()
         }catch{
             print("error" + "\(error)")
         }
         self.tableView.reloadData()
     }
-    func loadDataItem(){
-        if let data = try? Data(contentsOf: dataFilePath!){
-            let decoder = PropertyListDecoder()
-            do {item = try decoder.decode([Item].self, from: data)
-            }catch{
-                print("error occured \(error)")
+    func loadDataItem(request: NSFetchRequest<Item> = Item.fetchRequest()){
+        do {
+            item = try context.fetch(request)
+        }catch{
+            print(error)
+        }
+        tableView.reloadData()
+    }
+    func removeDataItem(position : Int){
+        context.delete(item[position])
+        item.remove(at: position)
+        saveDataItem()
+    }
+}
+
+extension ToDoViewController: UISearchBarDelegate {
+    
+    //MARK: -searchBar delegate methods
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        let request: NSFetchRequest<Item> = Item.fetchRequest()
+        request.predicate  = NSPredicate(format: "title CONTAINS[CD] %@", searchBar.text!)
+        request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
+        loadDataItem(request: request)
+        tableView.reloadData()
+    }
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        if searchBar.text?.count == 0 {
+            loadDataItem()
+            DispatchQueue.main.async {
+                searchBar.resignFirstResponder()
             }
         }
-       
     }
-    
     
 }
 
