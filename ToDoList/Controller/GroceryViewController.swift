@@ -7,29 +7,31 @@
 //
 
 import UIKit
-import CoreData
+import RealmSwift
 
 class GroceryViewController: UITableViewController {
     
-    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
-    var  category = [Category]()
+    let realm = try! Realm()
+    
+    //let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+    var categories: Results<Category>?
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        loadDataItem()
+        load()
 
     }
     
     //MARK: -DATASOURCE
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return category.count
+        return categories?.count ?? 1
     }
 
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
         let cell = UITableViewCell(style: .default, reuseIdentifier: "GroceryItem")
-        cell.textLabel?.text = category[indexPath.row].name
+        cell.textLabel?.text = categories?[indexPath.row].name ?? "No Category exist"
         //cell.accessoryType = category[indexPath.row].done ? .checkmark : .none
         return cell
         
@@ -43,7 +45,7 @@ class GroceryViewController: UITableViewController {
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         let destinationVC = segue.destination as! ToDoViewController
         if let indexpath = tableView.indexPathForSelectedRow {
-            destinationVC.selectedCategory = category[indexpath.row]
+            destinationVC.selectedCategory = categories?[indexpath.row]
         }
     }
     
@@ -54,11 +56,9 @@ class GroceryViewController: UITableViewController {
         let alert = UIAlertController(title: "Add New Item", message: "", preferredStyle: .alert)
         let action = UIAlertAction(title: "Add Item", style: .default) { (action) in
             if textField.text != ""{
-                let newcategory = Category(context: self.context)
+                let newcategory = Category()
                 newcategory.name = textField.text!
-                //newcategory.done = false
-                self.category.append(newcategory)
-                self.saveDataItem()
+                self.save(category: newcategory)
                 
             }else{
                 print("error!")
@@ -70,30 +70,25 @@ class GroceryViewController: UITableViewController {
         }
         alert.addAction(action)
         present(alert, animated: true, completion: nil)
-        
+    
     }
     
-    func saveDataItem(){
+    // save data to database
+    func save(category: Category){
         do{
-            try self.context.save()
+            try realm.write {
+                realm.add(category)
+            }
         }catch{
             print("error" + "\(error)")
         }
         self.tableView.reloadData()
     }
-    func loadDataItem(request: NSFetchRequest<Category> = Category.fetchRequest()){
-        do {
-            category = try context.fetch(request)
-        }catch{
-            print(error)
-        }
+    
+    
+    func load(){
+        categories = realm.objects(Category.self)
         tableView.reloadData()
     }
-    func removeDataItem(position : Int){
-        context.delete(category[position])
-        category.remove(at: position)
-        saveDataItem()
-    }
-    
     //MARK: -table view delegate method, direct to item list.
 }

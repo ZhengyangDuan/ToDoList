@@ -7,15 +7,15 @@
 //
 
 import UIKit
-import CoreData
+import RealmSwift
 
 class ToDoViewController: UITableViewController {
-
-    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
-    var  item = [Item]()
+    
+    let realm = try! Realm()
+    var item: Results<Item>?
     var selectedCategory : Category?{
         didSet{
-            loadDataItem()
+            loadItems()
         }
     }
     
@@ -23,22 +23,28 @@ class ToDoViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
-        print(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask))
+        // print(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask))
+        loadItems()
     }
 
     //MARK: -declare table rows and data source
     //rows
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return item.count
+        return item?.count ?? 1
     }
     
     //datasource
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
   
         let cell = UITableViewCell(style: .default, reuseIdentifier: "ToDo")
-        cell.textLabel?.text = item[indexPath.row].title
-        //change the done value
-        cell.accessoryType = item[indexPath.row].done ? .checkmark : .none
+        if let cellItem = item?[indexPath.row]{
+            cell.textLabel?.text = cellItem.title
+            //change the done value
+            cell.accessoryType = cellItem.done ? .checkmark : .none
+        }else{
+            cell.textLabel?.text = "No item added"
+        }
+       
         return cell
         
     }
@@ -46,28 +52,42 @@ class ToDoViewController: UITableViewController {
     //MARK: -declare tableview delegate
     //when cell been clicked
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        
-        item[indexPath.row].done = !item[indexPath.row].done
-        saveDataItem()
+        if let selectedItem = item?[indexPath.row]{
+            do{
+                try realm.write {
+                    selectedItem.done = !selectedItem.done
+                }
+            }catch{
+                print(error)
+            }
+        }
+        tableView.reloadData()
+    
+       // item[indexPath.row].done = !item[indexPath.row].done
+       // saveDataItem()
         tableView.deselectRow(at: indexPath, animated: true)
     }
     
     //MARK: -add button function
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
+        
         var textField = UITextField()
         let alert = UIAlertController(title: "Add New Item", message: "", preferredStyle: .alert)
         let action = UIAlertAction(title: "Add Item", style: .default) { (action) in
-            if textField.text != ""{
-                let newItem = Item(context: self.context)
-                newItem.title = textField.text!
-                newItem.done = false
-                newItem.belongsToCategory = self.selectedCategory
-                self.item.append(newItem)
-                self.saveDataItem()
-                
-            }else{
-                print("error!")
+            if let currentCategory = self.selectedCategory{
+                do{
+                    try self.realm.write {
+                        let newItem = Item()
+                        newItem.title = textField.text!
+                        currentCategory.items.append(newItem)
+                        self.tableView.reloadData()
+                    }
+                }catch{
+                    print(error)
+                }
+        
             }
+            
         }
         alert.addTextField { (alertTextField) in
             alertTextField.placeholder = "create new item"
@@ -75,52 +95,39 @@ class ToDoViewController: UITableViewController {
         }
         alert.addAction(action)
         present(alert, animated: true, completion: nil)
+        
     }
     
-    func saveDataItem(){
-        //declare encorder
-        
-        do{
-           try self.context.save()
-        }catch{
-            print("error" + "\(error)")
-        }
-        self.tableView.reloadData()
-    }
-    func loadDataItem(with request: NSFetchRequest<Item> = Item.fetchRequest(), predicate: NSPredicate? = nil){
-        let categoryPredicate = NSPredicate(format: "belongsToCategory.name MATCHES %@", selectedCategory!.name!)
-        if let additionalPredicate = predicate {
-            request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [categoryPredicate, additionalPredicate])
-        }else {
-            request.predicate = categoryPredicate
-        }
-        do {
-            item = try context.fetch(request)
-        }catch{
-            print(error)
-        }
+//    func saveDataItem(item: Item){
+//        do{
+//            try realm.write {
+//                realm.add(item)
+//            }
+//        }catch{
+//            print("error" + "\(error)")
+//        }
+//        self.tableView.reloadData()
+//    }
+    
+    func loadItems(){
+        item = selectedCategory?.items.sorted(byKeyPath: "title", ascending: true)
         tableView.reloadData()
     }
-    func removeDataItem(position : Int){
-        context.delete(item[position])
-        item.remove(at: position)
-        saveDataItem()
-    }
+
 }
 
 extension ToDoViewController: UISearchBarDelegate {
     
     //MARK: -searchBar delegate methods
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-        let request: NSFetchRequest<Item> = Item.fetchRequest()
-        let predicate  = NSPredicate(format: "title CONTAINS[CD] %@", searchBar.text!)
-        request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
-        loadDataItem(with: request, predicate : predicate)
+        
+        item = item?.filter("title CONTAINS[cd] %@", searchBar.text!).sorted(byKeyPath: "title", ascending: true)
         tableView.reloadData()
     }
+    
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         if searchBar.text?.count == 0 {
-            loadDataItem()
+            loadItems()
             DispatchQueue.main.async {
                 searchBar.resignFirstResponder()
             }
