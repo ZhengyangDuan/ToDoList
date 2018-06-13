@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B108D3CF20CEB8F300196AE9 /* GroceryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B108D3CE20CEB8F300196AE9 /* GroceryViewController.swift */; };
 		B10BD94920CAABB00056ECF1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10BD94820CAABB00056ECF1 /* AppDelegate.swift */; };
 		B10BD94B20CAABB00056ECF1 /* ToDoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10BD94A20CAABB00056ECF1 /* ToDoViewController.swift */; };
 		B10BD94E20CAABB00056ECF1 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B10BD94C20CAABB00056ECF1 /* Main.storyboard */; };
@@ -16,6 +17,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		B108D3CE20CEB8F300196AE9 /* GroceryViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroceryViewController.swift; sourceTree = "<group>"; };
 		B10BD94520CAABB00056ECF1 /* ToDoList.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ToDoList.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B10BD94820CAABB00056ECF1 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		B10BD94A20CAABB00056ECF1 /* ToDoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToDoViewController.swift; sourceTree = "<group>"; };
@@ -86,6 +88,7 @@
 		B128F4D820CD6B800094D3C0 /* Controller */ = {
 			isa = PBXGroup;
 			children = (
+				B108D3CE20CEB8F300196AE9 /* GroceryViewController.swift */,
 				B10BD94A20CAABB00056ECF1 /* ToDoViewController.swift */,
 			);
 			path = Controller;
@@ -162,6 +165,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B108D3CF20CEB8F300196AE9 /* GroceryViewController.swift in Sources */,
 				B10BD94B20CAABB00056ECF1 /* ToDoViewController.swift in Sources */,
 				B128F4FC20CDC3B60094D3C0 /* DataModel.xcdatamodeld in Sources */,
 				B10BD94920CAABB00056ECF1 /* AppDelegate.swift in Sources */,
