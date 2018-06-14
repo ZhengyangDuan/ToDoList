@@ -9,7 +9,7 @@
 import UIKit
 import RealmSwift
 
-class ToDoViewController: UITableViewController {
+class ToDoViewController: SwipeTableViewController {
     
     let realm = try! Realm()
     var item: Results<Item>?
@@ -25,6 +25,7 @@ class ToDoViewController: UITableViewController {
         // Do any additional setup after loading the view, typically from a nib.
         // print(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask))
         loadItems()
+        tableView.rowHeight = 80.0  
     }
 
     //MARK: -declare table rows and data source
@@ -36,7 +37,7 @@ class ToDoViewController: UITableViewController {
     //datasource
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
   
-        let cell = UITableViewCell(style: .default, reuseIdentifier: "ToDo")
+        let cell = super.tableView(tableView, cellForRowAt: indexPath)
         if let cellItem = item?[indexPath.row]{
             cell.textLabel?.text = cellItem.title
             //change the done value
@@ -44,7 +45,6 @@ class ToDoViewController: UITableViewController {
         }else{
             cell.textLabel?.text = "No item added"
         }
-       
         return cell
         
     }
@@ -99,20 +99,22 @@ class ToDoViewController: UITableViewController {
         
     }
     
-//    func saveDataItem(item: Item){
-//        do{
-//            try realm.write {
-//                realm.add(item)
-//            }
-//        }catch{
-//            print("error" + "\(error)")
-//        }
-//        self.tableView.reloadData()
-//    }
-    
     func loadItems(){
         item = selectedCategory?.items.sorted(byKeyPath: "title", ascending: true)
         tableView.reloadData()
+    }
+    override func updateModel(at indexPath: IndexPath) {
+        if let itemForDelete = item?[indexPath.row]{
+            do{
+                try realm.write {
+                    realm.delete(itemForDelete)
+                }
+            }catch{
+                print("error occured \(error)")
+            }
+        }else{
+            print("no such element")
+        }
     }
 
 }
