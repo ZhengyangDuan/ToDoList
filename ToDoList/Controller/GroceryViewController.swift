@@ -8,6 +8,7 @@
 
 import UIKit
 import RealmSwift
+import ChameleonFramework
 
 class GroceryViewController: SwipeTableViewController{
     
@@ -20,6 +21,7 @@ class GroceryViewController: SwipeTableViewController{
         super.viewDidLoad()
         load()
         tableView.rowHeight = 80.0
+        tableView.separatorStyle = .none
     }
     
     //MARK: -DATASOURCE
@@ -32,6 +34,8 @@ class GroceryViewController: SwipeTableViewController{
         
         let cell = super.tableView(tableView, cellForRowAt: indexPath)
         cell.textLabel?.text = categories?[indexPath.row].name ?? "No Category exist"
+        cell.backgroundColor = UIColor(hexString: categories?[indexPath.row].color ?? UIColor.randomFlat.hexValue())
+        cell.textLabel?.textColor = ContrastColorOf(UIColor(hexString: (categories?[indexPath.row].color) ?? UIColor.randomFlat.hexValue())!, returnFlat: true)
         return cell
         
     }
@@ -58,6 +62,7 @@ class GroceryViewController: SwipeTableViewController{
             if textField.text != ""{
                 let newcategory = Category()
                 newcategory.name = textField.text!
+                newcategory.color = UIColor.randomFlat.hexValue()
                 self.save(category: newcategory)
                 
             }else{
