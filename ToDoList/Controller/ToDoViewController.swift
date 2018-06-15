@@ -14,6 +14,9 @@ class ToDoViewController: SwipeTableViewController {
     
     let realm = try! Realm()
     var item: Results<Item>?
+    
+    @IBOutlet weak var searchBar: UISearchBar!
+    
     var selectedCategory : Category?{
         didSet{
             loadItems()
@@ -26,9 +29,31 @@ class ToDoViewController: SwipeTableViewController {
         // Do any additional setup after loading the view, typically from a nib.
         // print(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask))
         loadItems()
-        tableView.rowHeight = 80.0  
+        tableView.rowHeight = 80.0
+        
     }
-
+    
+    override func viewWillAppear(_ animated: Bool) {
+        guard let colorHex = selectedCategory?.color else{fatalError("dead")}
+        title = selectedCategory!.name
+        updateBar(with: colorHex)
+            
+        
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        updateBar(with: "1D9BF6")
+    }
+    
+    func updateBar(with hexCode: String){
+        guard let navi = navigationController?.navigationBar else{fatalError("navigationbar does not exist")}
+        guard let barColor = UIColor(hexString: hexCode) else{fatalError("dead")}
+        navi.tintColor = ContrastColorOf(barColor, returnFlat: true)
+        navi.barTintColor = barColor
+        searchBar.barTintColor = barColor
+        navi.largeTitleTextAttributes = [NSAttributedStringKey.foregroundColor : ContrastColorOf(barColor, returnFlat: true)]
+    }
+    
     //MARK: -declare table rows and data source
     //rows
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
